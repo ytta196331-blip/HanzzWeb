@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HANZ STORE - LIST STOK AKUN & BARANG</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@500;600;700&display=swap');
+    
+    body {
+      font-family: 'Rajdhani', sans-serif;
+      background-color: #05070f;
+      color: #e2e8f0;
+    }
+    
+    .font-orbitron {
+      font-family: 'Orbitron', sans-serif;
+    }
+
+    .neon-border-cyan {
+      box-shadow: 0 0 15px rgba(6, 182, 212, 0.4);
+      border-color: rgba(6, 182, 212, 0.8);
+    }
+    
+    .neon-border-pink {
+      box-shadow: 0 0 15px rgba(236, 72, 153, 0.4);
+      border-color: rgba(236, 72, 153, 0.8);
+    }
+
+    .neon-text-cyan {
+      text-shadow: 0 0 10px rgba(6, 182, 212, 0.7);
+    }
+
+    .neon-text-pink {
+      text-shadow: 0 0 10px rgba(236, 72, 153, 0.7);
+    }
+
+    .bg-glass {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #06b6d4;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between custom-scrollbar bg-slate-950 text-slate-100">
+
+  <!-- TOP NAVBAR -->
+  <header class="w-full bg-slate-900/80 border-b border-cyan-500/30 p-4 sticky top-0 z-40 backdrop-blur-md flex justify-between items-center px-6">
+    <div class="flex items-center space-x-3">
+      <i class="fa-solid fa-shield-halved text-cyan-400 text-2xl animate-pulse"></i>
+      <h1 class="font-orbitron text-xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-500">
+        HANZ STORE
+      </h1>
+    </div>
+    <div id="navStatus" class="text-xs px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono">
+      LOCKED
+    </div>
+  </header>
+
+  <main class="flex-grow flex items-center justify-center p-4">
+
+    <!-- VIEW 1: GATEKEEPER / LOGIN KEY -->
+    <section id="gatekeeperView" class="w-full max-w-md bg-slate-900/90 border border-cyan-500/50 rounded-2xl p-6 sm:p-8 neon-border-cyan bg-glass relative overflow-hidden">
+      <div class="absolute -top-10 -right-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none"></div>
+      <div class="absolute -bottom-10 -left-10 w-32 h-32 bg-pink-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+      <div class="text-center mb-6">
+        <div class="inline-block p-4 rounded-full bg-slate-800/80 border border-cyan-500/30 mb-3">
+          <i class="fa-solid fa-key text-3xl text-cyan-400"></i>
+        </div>
+        <h2 class="font-orbitron text-2xl font-bold text-slate-100 tracking-wide mb-1">VERIFIKASI KEY</h2>
+        <p class="text-slate-400 text-sm">Masukkan Key Akses untuk Membuka Stok</p>
+        
+        <!-- PETUNJUK KEY BUYER -->
+        <div class="mt-4 p-2.5 bg-cyan-950/50 border border-cyan-500/40 rounded-xl text-xs font-mono text-cyan-300 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-circle-info text-cyan-400"></i>
+          <span>Key Buyer: <strong class="text-cyan-200 tracking-wider">BUYERHANZ</strong></span>
+        </div>
+      </div>
+
+      <form id="keyForm" onsubmit="handleKeySubmit(event)" class="space-y-4">
+        <div>
+          <label for="inputKey" class="block text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">MASUKKAN KEY ANDA</label>
+          <div class="relative">
+            <input type="text" id="inputKey" placeholder="Contoh: BUYERHANZ" required
+              class="w-full px-4 py-3 bg-slate-950 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-400 text-slate-100 placeholder-slate-600 font-mono text-center tracking-widest text-lg transition duration-200">
+          </div>
+        </div>
+
+        <button type="submit" 
+          class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-orbitron font-bold tracking-wider uppercase rounded-xl shadow-lg shadow-cyan-500/20 active:scale-98 transition transform duration-150">
+          MASUK
+        </button>
+      </form>
+
+      <div id="keyError" class="hidden mt-4 p-3 bg-red-950/80 border border-red-500/50 rounded-xl text-red-400 text-xs text-center font-mono">
+        Key tidak valid! Periksa kembali key yang Anda masukkan.
+      </div>
+    </section>
+
+    <!-- VIEW 2: BUYER CATALOGUE -->
+    <section id="buyerView" class="hidden w-full max-w-6xl space-y-6">
+      
+      <!-- BUYER HEADER & KEY STOK ADMIN SEARCH -->
+      <div class="bg-slate-900/80 border border-cyan-500/30 rounded-2xl p-6 bg-glass flex flex-col md:flex-row justify-between items-center gap-6">
+        <div>
+          <h2 class="font-orbitron text-2xl sm:text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-pink-500 neon-text-cyan">
+            WELCOME TO WEBSITE HANZ
+          </h2>
+          <p class="text-slate-400 text-sm mt-1">Cari stok berdasarkan Key Stok Admin atau filter barang yang tersedia</p>
+        </div>
+
+        <!-- SEARCH FORM / FILTER KEY STOK ADMIN -->
+        <div class="w-full md:w-auto flex flex-col sm:flex-row items-center gap-3">
+          <div class="relative w-full sm:w-64">
+            <input type="text" id="searchAdminKey" placeholder="MASUKKAN KEY STOK DARI ADMIN"
+              class="w-full px-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl focus:outline-none focus:border-cyan-400 text-slate-100 placeholder-slate-500 text-xs font-mono uppercase tracking-wide">
+          </div>
+          <button onclick="filterStockByAdminKey()" 
+            class="w-full sm:w-auto px-6 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-orbitron font-bold text-xs uppercase tracking-wider rounded-xl transition duration-150 shadow-md shadow-cyan-500/20">
+            CEK STOK!
+          </button>
+          <button onclick="resetFilter()" title="Reset Filter"
+            class="px-3 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition">
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- CATALOGUE GRID -->
+      <div id="stockGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Stock item cards will be dynamically inserted here -->
+      </div>
+
+      <!-- EMPTY STATE -->
+      <div id="emptyState" class="hidden text-center py-16 bg-slate-900/40 border border-dashed border-slate-800 rounded-2xl">
+        <i class="fa-solid fa-box-open text-5xl text-slate-600 mb-3"></i>
+        <h3 class="font-orbitron text-lg text-slate-400">Tidak Ada Stok Ditemukan</h3>
+        <p class="text-slate-600 text-xs mt-1">Coba kata kunci atau Key Stok Admin yang berbeda.</p>
+      </div>
+    </section>
+
+    <!-- VIEW 3: ADMIN PANEL (KEY HANZ26) -->
+    <section id="adminView" class="hidden w-full max-w-5xl space-y-6">
+      <div class="bg-slate-900/90 border border-pink-500/40 rounded-2xl p-6 bg-glass neon-border-pink">
+        <div class="flex justify-between items-center mb-6">
+          <div>
+            <span class="text-xs font-mono text-pink-400 uppercase tracking-widest">[ PANEL ADMIN STOK ]</span>
+            <h2 class="font-orbitron text-2xl font-bold text-slate-100">KELOLA STOK AKUN & BARANG</h2>
+          </div>
+          <button onclick="openAddModal()" 
+            class="px-4 py-2.5 bg-pink-600 hover:bg-pink-500 text-white font-orbitron text-xs font-bold uppercase rounded-xl shadow-lg shadow-pink-600/30 transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Tambah Stok Baru
+          </button>
+        </div>
+
+        <!-- STOK TABLE -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-slate-950 font-orbitron text-xs uppercase text-pink-400 border-b border-slate-800">
+              <tr>
+                <th class="p-4">Gambar</th>
+                <th class="p-4">Judul Stok</th>
+                <th class="p-4">Key Stok Admin</th>
+                <th class="p-4">Harga</th>
+                <th class="p-4">Status</th>
+                <th class="p-4 text-center">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="adminStockTable" class="divide-y divide-slate-800 bg-slate-900/50">
+              <!-- Admin rows injected via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: PREVIEW FULL & DETAIL (UNTUK BUYER MENCET FOTO/CARD) -->
+  <div id="detailModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-cyan-500/50 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar p-6 relative neon-border-cyan">
+      <button onclick="closeDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 p-2 rounded-full w-9 h-9 flex items-center justify-center border border-slate-700">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="space-y-4">
+        <!-- FULL GAMBAR STOK -->
+        <div class="w-full bg-slate-950 rounded-xl overflow-hidden border border-slate-800 max-h-96 flex items-center justify-center">
+          <img id="modalImg" src="" alt="Stok Full" class="w-full h-auto max-h-96 object-contain">
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <h3 id="modalTitle" class="font-orbitron text-xl sm:text-2xl font-bold text-cyan-300"></h3>
+            <span id="modalKeyBadge" class="text-xs font-mono px-3 py-1 bg-cyan-950 text-cyan-400 border border-cyan-500/40 rounded-full"></span>
+          </div>
+          <div id="modalPrice" class="text-xl font-bold font-mono text-pink-400 mb-4"></div>
+
+          <!-- DETAIL / SPEK STOK -->
+          <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-2">
+            <h4 class="text-xs font-orbitron uppercase text-slate-400 tracking-wider">Spesifikasi & Detail Stok:</h4>
+            <div id="modalSpecs" class="text-slate-200 text-sm whitespace-pre-line font-sans leading-relaxed"></div>
+          </div>
+        </div>
+
+        <!-- TOMBOL BELI STOK INI VIA WA -->
+        <div class="pt-2">
+          <button id="modalBuyBtn" onclick="buyStockViaWA()"
+            class="w-full py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-orbitron font-black text-lg tracking-wider uppercase rounded-xl shadow-xl shadow-green-500/20 transition transform active:scale-98 flex items-center justify-center gap-3">
+            <i class="fa-brands fa-whatsapp text-2xl"></i>
+            <span>BELI STOK INI</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: ADD / EDIT STOK (PANEL ADMIN) -->
+  <div id="adminModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-pink-500/40 rounded-2xl max-w-lg w-full p-6 relative">
+      <button onclick="closeAdminModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <h3 id="adminModalTitle" class="font-orbitron text-xl font-bold text-pink-400 mb-4">TAMBAH STOK BARU</h3>
+
+      <form id="stockForm" onsubmit="saveStock(event)" class="space-y-4">
+        <input type="hidden" id="stockId">
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Judul Stok / Akun</label>
+          <input type="text" id="formTitle" required placeholder="Contoh: Akun MLBB Hero Full" 
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-pink-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Key Stok Admin (Pengelompokan)</label>
+          <input type="text" id="formAdminKey" required placeholder="Contoh: STOK-ML-01" 
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-pink-500 font-mono uppercase">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Harga (Rp)</label>
+          <input type="text" id="formPrice" required placeholder="Contoh: 150.000" 
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-pink-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">URL Gambar Stok</label>
+          <input type="url" id="formImg" required placeholder="https://..." 
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-pink-500 font-mono text-xs">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Spesifikasi Stok (Detail)</label>
+          <textarea id="formSpecs" rows="4" required placeholder="Tuliskan detail spek akun/barang di sini..." 
+            class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-pink-500 custom-scrollbar"></textarea>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 uppercase mb-1">Status Stok</label>
+          <select id="formStatus" class="w-full px-3 py-2 bg-slate-950 border border-slate-700 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-pink-500">
+            <option value="AVAILABLE">READY (Tersedia)</option>
+            <option value="SOLD">SOLD OUT (Terjual)</option>
+          </select>
+        </div>
+
+        <div class="pt-2 flex justify-end gap-3">
+          <button type="button" onclick="closeAdminModal()" class="px-4 py-2 bg-slate-800 text-slate-300 text-xs rounded-lg">Batal</button>
+          <button type="submit" class="px-5 py-2 bg-pink-600 hover:bg-pink-500 text-white font-orbitron text-xs font-bold rounded-lg shadow-md">Simpan Stok</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="w-full bg-slate-950 border-t border-slate-900 p-4 text-center text-xs text-slate-600 font-mono">
+    &copy; 2026 HANZ STORE. All Rights Reserved.
+  </footer>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // INITIAL SAMPLE DATA
+    const defaultStocks = [
+      {
+        id: 1,
+        title: "AKUN SULTAN FREE FIRE VVIP",
+        adminKey: "FFVIP",
+        price: "250.000",
+        img: "https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=600&q=80",
+        specs: "• Set Old Lengkap\n• Vault Rame & Skin Senjata Legend\n• Log Google Polosan (Bisa Change All Data)\n• Anti Tabrak / Garansi 100%",
+        status: "AVAILABLE"
+      },
+      {
+        id: 2,
+        title: "AKUN MOBILE LEGEND MYTHIC",
+        adminKey: "MLMYTHIC",
+        price: "180.000",
+        img: "https://images.unsplash.com/photo-1538481199705-c710c4e965fc?auto=format&fit=crop&w=600&q=80",
+        specs: "• Hero 95+, Skin 120+\n• Emblem Max\n• All Unbind Sisa Moonton\n• Garansi Safe Play",
+        status: "AVAILABLE"
+      }
+    ];
+
+    // LOAD STOCKS FROM LOCALSTORAGE
+    function getStocks() {
+      const stored = localStorage.getItem('hanz_stocks');
+      if (!stored) {
+        localStorage.setItem('hanz_stocks', JSON.stringify(defaultStocks));
+        return defaultStocks;
+      }
+      return JSON.parse(stored);
+    }
+
+    function setStocks(stocks) {
+      localStorage.setItem('hanz_stocks', JSON.stringify(stocks));
+    }
+
+    // STATE VARIABLE UNTUK WA BUY
+    let currentSelectedStock = null;
+
+    // KEY SUBMIT HANDLER
+    function handleKeySubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('inputKey').value.trim();
+      const errEl = document.getElementById('keyError');
+
+      if (input === 'BUYERHANZ') {
+        errEl.classList.add('hidden');
+        showView('buyer');
+      } else if (input === 'HANZ26') {
+        errEl.classList.add('hidden');
+        showView('admin');
+      } else {
+        errEl.classList.remove('hidden');
+      }
+    }
+
+    // VIEW SWITCHER
+    function showView(view) {
+      const gateView = document.getElementById('gatekeeperView');
+      const buyerView = document.getElementById('buyerView');
+      const adminView = document.getElementById('adminView');
+      const navStatus = document.getElementById('navStatus');
+
+      gateView.classList.add('hidden');
+      buyerView.classList.add('hidden');
+      adminView.classList.add('hidden');
+
+      if (view === 'buyer') {
+        buyerView.classList.remove('hidden');
+        navStatus.innerText = 'BUYER MODE';
+        navStatus.className = 'text-xs px-3 py-1 rounded-full bg-cyan-950 border border-cyan-500/50 text-cyan-400 font-mono';
+        renderBuyerGrid();
+      } else if (view === 'admin') {
+        adminView.classList.remove('hidden');
+        navStatus.innerText = 'ADMIN MODE';
+        navStatus.className = 'text-xs px-3 py-1 rounded-full bg-pink-950 border border-pink-500/50 text-pink-400 font-mono';
+        renderAdminTable();
+      }
+    }
+
+    // RENDER BUYER CATALOGUE
+    function renderBuyerGrid(filterKey = '') {
+      const stocks = getStocks();
+      const grid = document.getElementById('stockGrid');
+      const emptyState = document.getElementById('emptyState');
+      grid.innerHTML = '';
+
+      const filtered = stocks.filter(s => {
+        if (!filterKey) return true;
+        return s.adminKey.toLowerCase().includes(filterKey.toLowerCase()) || 
+               s.title.toLowerCase().includes(filterKey.toLowerCase());
+      });
+
+      if (filtered.length === 0) {
+        emptyState.classList.remove('hidden');
+        return;
+      } else {
+        emptyState.classList.add('hidden');
+      }
+
+      filtered.forEach(item => {
+        const isSold = item.status === 'SOLD';
+        const card = document.createElement('div');
+        card.className = "bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 rounded-2xl overflow-hidden shadow-lg transition duration-300 flex flex-col justify-between group cursor-pointer";
+        
+        card.onclick = () => openDetailModal(item.id);
+
+        card.innerHTML = `
+          <div>
+            <div class="relative overflow-hidden aspect-video bg-slate-950">
+              <img src="${item.img}" alt="${item.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+              <div class="absolute top-3 left-3 bg-slate-950/80 border border-cyan-500/40 text-cyan-400 font-mono text-xs px-2.5 py-1 rounded-full backdrop-blur-md">
+                KEY: ${item.adminKey}
+              </div>
+              ${isSold ? `<div class="absolute inset-0 bg-slate-950/80 flex items-center justify-center"><span class="font-orbitron font-black text-red-500 border-2 border-red-500 px-4 py-1 rounded-lg text-lg transform -rotate-12">SOLD OUT</span></div>` : ''}
+            </div>
+            
+            <div class="p-5 space-y-2">
+              <h3 class="font-orbitron font-bold text-lg text-slate-100 group-hover:text-cyan-300 transition">${item.title}</h3>
+              <div class="text-xs text-slate-400 line-clamp-2">${item.specs.replace(/\n/g, ' ')}</div>
+            </div>
+          </div>
+
+          <div class="p-5 pt-0 flex items-center justify-between mt-2 border-t border-slate-800/60 pt-4">
+            <div>
+              <span class="text-[10px] uppercase font-mono text-slate-500 block">Harga</span>
+              <span class="font-mono text-lg font-bold text-pink-400">Rp ${item.price}</span>
+            </div>
+            <button class="px-4 py-2 bg-cyan-500/10 border border-cyan-500/40 group-hover:bg-cyan-500 group-hover:text-slate-950 text-cyan-400 font-orbitron font-bold text-xs uppercase rounded-xl transition">
+              Lihat Detail
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    // FILTER BY ADMIN KEY
+    function filterStockByAdminKey() {
+      const keyVal = document.getElementById('searchAdminKey').value.trim();
+      renderBuyerGrid(keyVal);
+    }
+
+    function resetFilter() {
+      document.getElementById('searchAdminKey').value = '';
+      renderBuyerGrid();
+    }
+
+    // MODAL PREVIEW DETAIL BUYER
+    function openDetailModal(id) {
+      const stocks = getStocks();
+      const item = stocks.find(s => Number(s.id) === Number(id));
+      if (!item) return;
+
+      currentSelectedStock = item;
+
+      document.getElementById('modalImg').src = item.img;
+      document.getElementById('modalTitle').innerText = item.title;
+      document.getElementById('modalKeyBadge').innerText = `KEY: ${item.adminKey}`;
+      document.getElementById('modalPrice').innerText = `Rp ${item.price}`;
+      document.getElementById('modalSpecs').innerText = item.specs;
+
+      const buyBtn = document.getElementById('modalBuyBtn');
+      if (item.status === 'SOLD') {
+        buyBtn.disabled = true;
+        buyBtn.className = "w-full py-4 bg-slate-800 text-slate-500 font-orbitron font-bold text-lg tracking-wider uppercase rounded-xl cursor-not-allowed";
+        buyBtn.innerHTML = `<span>STOK INI SUDAH TERJUAL</span>`;
+      } else {
+        buyBtn.disabled = false;
+        buyBtn.className = "w-full py-4 bg-gradient-to-r from-emerald-500 via-green-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-orbitron font-black text-lg tracking-wider uppercase rounded-xl shadow-xl shadow-green-500/20 transition transform active:scale-98 flex items-center justify-center gap-3 cursor-pointer";
+        buyBtn.innerHTML = `<i class="fa-brands fa-whatsapp text-2xl"></i> <span>BELI STOK INI</span>`;
+      }
+
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+      currentSelectedStock = null;
+    }
+
+    // BUY VIA WHATSAPP REDIRECT
+    function buyStockViaWA() {
+      if (!currentSelectedStock) return;
+      const adminWA = "6283177200158";
+      const message = `Halo Admin HANZ STORE, saya ingin membeli stok berikut:\n\n` +
+                      `📌 *Nama Stok:* ${currentSelectedStock.title}\n` +
+                      `🔑 *Key Stok:* ${currentSelectedStock.adminKey}\n` +
+                      `💰 *Harga:* Rp ${currentSelectedStock.price}\n\n` +
+                      `Mohon diproses untuk pembayaran. Terima kasih!`;
+      
+      const encodedMsg = encodeURIComponent(message);
+      window.open(`https://wa.me/${adminWA}?text=${encodedMsg}`, '_blank');
+    }
+
+    // RENDER ADMIN TABLE
+    function renderAdminTable() {
+      const stocks = getStocks();
+      const tbody = document.getElementById('adminStockTable');
+      tbody.innerHTML = '';
+
+      stocks.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-900/80 transition";
+        tr.innerHTML = `
+          <td class="p-4">
+            <img src="${item.img}" class="w-12 h-12 object-cover rounded-lg border border-slate-700 bg-slate-950">
+          </td>
+          <td class="p-4 font-bold text-slate-100">${item.title}</td>
+          <td class="p-4 font-mono text-cyan-400">${item.adminKey}</td>
+          <td class="p-4 font-mono text-pink-400">Rp ${item.price}</td>
+          <td class="p-4">
+            <span class="px-2.5 py-1 text-[10px] font-mono rounded-full ${item.status === 'AVAILABLE' ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40' : 'bg-red-950 text-red-400 border border-red-500/40'}">
+              ${item.status}
+            </span>
+          </td>
+          <td class="p-4 text-center">
+            <div class="flex items-center justify-center gap-2">
+              <button onclick="openEditModal(${item.id}); event.stopPropagation();" type="button" class="p-2 bg-cyan-950 hover:bg-cyan-900 text-cyan-400 rounded-lg border border-cyan-500/40 transition">
+                <i class="fa-solid fa-pen-to-square"></i>
+              </button>
+              <button onclick="deleteStock(${item.id}); event.stopPropagation();" type="button" class="p-2 bg-red-950 hover:bg-red-900 text-red-400 rounded-lg border border-red-500/40 transition">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ADMIN MODAL ACTIONS (ADD/EDIT/SAVE/DELETE)
+    function openAddModal() {
+      document.getElementById('stockId').value = '';
+      document.getElementById('stockForm').reset();
+      document.getElementById('adminModalTitle').innerText = 'TAMBAH STOK BARU';
+      document.getElementById('adminModal').classList.remove('hidden');
+    }
+
+    function openEditModal(id) {
+      const stocks = getStocks();
+      const item = stocks.find(s => Number(s.id) === Number(id));
+      if (!item) return;
+
+      document.getElementById('stockId').value = item.id;
+      document.getElementById('formTitle').value = item.title;
+      document.getElementById('formAdminKey').value = item.adminKey;
+      document.getElementById('formPrice').value = item.price;
+      document.getElementById('formImg').value = item.img;
+      document.getElementById('formSpecs').value = item.specs;
+      document.getElementById('formStatus').value = item.status;
+
+      document.getElementById('adminModalTitle').innerText = 'EDIT STOK';
+      document.getElementById('adminModal').classList.remove('hidden');
+    }
+
+    function closeAdminModal() {
+      document.getElementById('adminModal').classList.add('hidden');
+    }
+
+    function saveStock(e) {
+      e.preventDefault();
+      const stocks = getStocks();
+      const idVal = document.getElementById('stockId').value;
+
+      const newStock = {
+        id: idVal ? Number(idVal) : Date.now(),
+        title: document.getElementById('formTitle').value.trim(),
+        adminKey: document.getElementById('formAdminKey').value.trim().toUpperCase(),
+        price: document.getElementById('formPrice').value.trim(),
+        img: document.getElementById('formImg').value.trim(),
+        specs: document.getElementById('formSpecs').value.trim(),
+        status: document.getElementById('formStatus').value
+      };
+
+      if (idVal) {
+        const index = stocks.findIndex(s => Number(s.id) === Number(idVal));
+        if (index !== -1) stocks[index] = newStock;
+      } else {
+        stocks.push(newStock);
+      }
+
+      setStocks(stocks);
+      closeAdminModal();
+      renderAdminTable();
+    }
+
+    // HAPUS STOK PERBAIKAN
+    function deleteStock(id) {
+      const stocks = getStocks();
+      const item = stocks.find(s => Number(s.id) === Number(id));
+      if (!item) return;
+
+      if (confirm(`Yakin ingin menghapus stok "${item.title}"?`)) {
+        const updated = stocks.filter(s => Number(s.id) !== Number(id));
+        setStocks(updated);
+        renderAdminTable();
+        renderBuyerGrid();
+      }
+    }
+  </script>
+</body>
+</html>
